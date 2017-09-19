@@ -9,12 +9,12 @@ def smearingA(Ebins, sigma ):
     for i in range(dim):
         e=(Ebins[i]+Ebins[i+1])/2
         x=e+sigma*e*np.random.randn(10000)
-        h=np.histogram(x,bins=Ebins)
+        h=np.array(np.histogram(x,bins=Ebins)[0],'d')
 
         #store in matrix, normalizing each column to 1
-        m[:,i]=h[0]/sum(h[0])
+        m[:,i]=h/sum(h)
 
-    return m
+    return m                        
 
 def smearingB(Ebins, sigma, missing ):
     dim=len(Ebins)-1
@@ -23,9 +23,9 @@ def smearingB(Ebins, sigma, missing ):
     for i in range(dim):
         e=(Ebins[i]+Ebins[i+1])/2
         x=e+0.05*e*np.random.randn(10000)-missing*2*e*np.random.random(10000)
-        h=np.histogram(x,bins=Ebins)
+        h=np.array(np.histogram(x,bins=Ebins)[0],'d')
 
         #store in matrix, normalizing each row to 1
-        m[:,i]=h[0]/sum(h[0])
+        m[:,i]=h/sum(h)
 
     return m
