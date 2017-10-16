@@ -42,5 +42,7 @@ def asmearing(Ebins, sigma, bias):
             if(e2<=e1):
                 #h[j]+=e1*bias
                 h[j]+=bias*exp(-pow(e2-e1,2)/(2*e1*e1))
+                #h[j]+=bias*e1*exp(-pow(e2-e1,2)/(2*0.5*e1*e1))
+
         m[:,i]=h/sum(h)
     return m
