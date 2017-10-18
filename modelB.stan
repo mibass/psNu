@@ -1,55 +1,39 @@
-#include func.stan
-
+functions {
+    real OscProb(real L, real Elo, real Eup, real theta, real dm){
+        real Ec=(Eup+Elo)/2;
+        return 1-pow(sin(2*theta),2)*pow(sin(1.27*dm*L/Ec),2);
+    }
+}
 
 data {
+    int<lower=1> N;
     real L; //baseline [km]
-    int<lower=0> Nbins;
-    real Ebins[Nbins+1]; //Energy bin boundaries [GeV]
-    vector[Nbins] ynd; //number of events measured at ND
-    real ttheta; //true value of theta
-    real tdm; //true value of dm^2
+    real y[N]; //measured event energies at FD
+
+    //flux distribution (DUNE numu CC FD), modeled as gamma
+    real f_alpha;//=3.01;
+    real f_shift;//=0.33;
+    real f_beta;//=0.75;
 }
 
-transformed data {
-    int y[Nbins]; //number of events measured at FD
-    vector[Nbins] ty; //vector version to be converted to int at the end
-    real gqoscprobs[Nbins];
-
-    //apply oscillation to true spectrum
-    for (j in 1:Nbins){
-        ty[j]=OscProb(L,Ebins[j],Ebins[j+1],ttheta,tdm) * ynd[j];
-    }
-
-    //apply smearing
-    print(ty);
-    ty=Sa*ty;
-    print(ty);
-
-    //convert vector to int array
-    for (j in 1:Nbins){
-        int i=0;
-        while (i<ty[j]) i=i+1;
-        y[j] = i;
-    }
-
-    for (j in 1:Nbins){
-        gqoscprobs[j]=OscProb(L,Ebins[j],Ebins[j+1],ttheta,tdm);
-    }
-}
 
 parameters {
     real<lower=0,upper=1.57> theta;
     real<lower=2e-3,upper=4e-3> dm;
+
+    real<lower=0> yf[N];
+    real osc[N];
 }
 
-transformed parameters {
-    vector[Nbins] pyfd; //predicted flux at FD
-    for (j in 1:Nbins)
-        pyfd[j] = OscProb(L,Ebins[j],Ebins[j+1],theta,dm) * ynd[j];
-
-    pyfd=Sb*pyfd;
-}
 
 model {
-    y ~ poisson(pyfd);
+
+  osc ~ uniform(0,1);
+  yf ~ gamma(f_alpha, f_beta);
+  print(yf);
+  //for (i in 1:N) {
+  //  if (osc[i]>OscProb(L, yf[i], yf[i], theta, dm))
+  //    yf[i]=0.0;
+  //}
+  y ~ gamma(yf,1);
 }
